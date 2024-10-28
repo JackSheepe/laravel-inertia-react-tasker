@@ -7,6 +7,8 @@ use App\Http\Requests\StoreProjectRequest;
 use App\Http\Requests\UpdateProjectRequest;
 use App\Http\Resources\ProjectResorce;
 use App\Http\Resources\TaskResource;
+use Illuminate\Support\Facades\Auth as FacadesAuth;
+use Illuminate\Support\Str;
 
 class ProjectController extends Controller
 {
@@ -36,7 +38,7 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        //
+        return inertia('Project/Create');
     }
 
     /**
@@ -44,7 +46,16 @@ class ProjectController extends Controller
      */
     public function store(StoreProjectRequest $request)
     {
-        //
+        $data = $request->validated();
+        /** @var \Illuminate\Http\UploadedFile $image */
+        $image = $data['image'] ?? null;
+        $data['created_by'] = FacadesAuth::id();
+        $data['updated_by'] = FacadesAuth::id();
+        if($image) {
+            $data['image_path'] = $image->store('project/' .Str::random(), 'public');
+        }
+        $project = Project::create($data);
+        return redirect()->route('project.show', $project);
     }
 
     /**
